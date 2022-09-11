@@ -1,4 +1,6 @@
 # 使えません Cannot Use Under Construction
+[nav2djs](https://github.com/GT-RAIL/nav2djs) is preferred
+
 # navgoal_webgui
 A WebGUI for publishing 2D Nav Goal
 
