@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>2D Nav Goal Web Pubisher</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    <script type="text/javascript"
+        src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/105/three.min.js"></script>
+
+    <script type="text/javascript" type="text/javascript">
+        // Connecting to ROS
+        // -----------------
+
+        var ros = new ROSLIB.Ros();
+        ros.on('error', function (error) {
+            document.getElementById('state').innerHTML = "<span style='color: red;'><b>Error</b></span>";
+        });
+        ros.on('connection', function (error) {
+            document.getElementById('state').innerHTML = "<span style='color: green;'><b>Connect</b></span>";
+        });
+        ros.on('close', function (error) {
+            document.getElementById('state').innerHTML = "Close";
+        });
+        ros.connect('ws://' + location.hostname + ':9090');
+
+        // Subscribing Topics
+        // ----------------------
+        
+        // 2D map
+        var Maplistener = new ROSLIB.Topic({
+            ros: ros,
+            name: '/whill/costmap2d/costmap/costmap',
+            messageType: 'nav_msgs/OccupancyGrid'
+        });
+
+        Maplistener.subscribe(function (message) {
+            var map_data = message.data;
+            // display browser
+            
+
+
+
+            // document.getElementById("linearX").textContent = "map subscribed";
+            console.log("subscribe map");
+        });
+
+        let viewer = new ROS3D.Viewer({
+            divID : 'map',
+            width : 600,
+            height : 600,
+            antialias : true,
+            intensity : 1.0,
+            cameraPose : {x : -1, y : 0, z : 20},
+            displayPanAndZoomFrame : true
+        });
+
+        let mapClient = new ROS3D.OccupancyGridClient({
+            ros : ros,
+            rootObject : viewer.scene,
+            continuous : true
+        });
+
+        // path
+        var Pathlistener = new ROSLIB.Topic({
+            ros: ros,
+            name: '/whill/path',
+            messageType: 'geometry_msgs/PoseArray'
+        });
+
+        Pathlistener.subscribe(function (message) {
+            var path_data = message.poses;
+            // display browser
+            // document.getElementById("linearX").textContent = "map subscribed";
+            console.log("subscribe path");
+        });
+
+        // Publisher
+        // ----------------------
+        
+        // 2D Nav goal
+        var NavGoalPub = new ROSLIB.Topic({
+            ros : ros,
+            name : '/whill/wagon_nav/request',
+            messageType : 'geometry_msgs/PoseStamped'
+        });
+        
+        // publishing topic
+        // var nav_goal = new ROSLIB.Message({
+        //     header : 'room1'
+        //     pose : 'room1'
+        // });
+        // NavGoalPub.publish(nav_goal);
+
+        // tf listener
+        var tfClient = new ROSLIB.TFClient({
+            ros: ros,
+            fixedFrame: 'map',
+            angularThres: 0.01,
+            transThres: 0.01
+        });
+
+        tfClient.subscribe('base_link', function (tf) {
+            var mapX = tf.translation.x;
+            var mapY = tf.translation.y;
+
+            var quaternion = new THREE.Quaternion(tf.rotation.x, tf.rotation.y, tf.rotation.z, tf.rotation.w);
+            var euler = new THREE.Euler;
+            euler.setFromQuaternion(quaternion);
+            var mapAngle = euler.z * 180.0 / Math.PI;
+            document.getElementById("mapX").textContent = "X: " + mapX.toFixed(3) + " m";
+            document.getElementById("mapY").textContent = "Y: " + mapY.toFixed(3) + " m";
+            document.getElementById("mapAngle").textContent = "Angle: " + mapAngle.toFixed(3) + " deg";
+            // console.log(mapX, mapY, mapAngle);
+        });
+
+        window.onload = function () {
+        };
+        window.onunload = function () {
+            ros.close();
+        };
+
+    </script>
+</head>
+
+<body>
+    <div class="header">
+        <div class="title">
+            <p>status: <label id="state">Disconnect</label></p>
+            <h1>2D Nav Goal Web Pubisher</h1>
+        </div>
+    </div>
+
+    <div class="first_row">
+        <div class="block cmd_vel">
+            <h2>cmd_vel</h2>
+            <p id="linearX">linearX: 0.0 m/s</p>
+            <p id="linearY">linearY: 0.0 m/s</p>
+            <p id="angularZ">angularZ: 0.0 rad/s</p>
+        </div>
+
+        <div class="block real_velocity">
+            <h2>Real Velocity</h2>
+            <p id="odomlinearX">linearX: 0.0 m/s</p>
+            <p id="odomlinearY">linearY: 0.0 m/s</p>
+            <p id="odomangularZ">angularZ: 0.0 rad/s</p>
+        </div>
+    </div>
+
+    <div class="second_row">
+        <div class="block position">
+            <h2>Position</h2>
+            <p id="mapX">X: 0.0 m</p>
+            <p id="mapY">Y: 0.0 m</p>
+            <p id="mapAngle">Angle: 0.0 deg</p>
+        </div>
+    </div>
+
+    <div class="third_row">
+        <div  class="block joycon_status">
+            <h2>JoyCon Status</h2>
+            <p id="pathmode">pathmode: 0</p>
+            <p id="runmode">teleop</p>
+        </div>
+
+        <div class="block planner_status">
+            <h2>planner Status</h2>
+            <p id="status">status: </p>
+            <p id="planner_pathmode">pathmode: 0</p>
+            <p id="direction">direction: 0</p>
+            <p id="progress">progress: 0.0 %</p>
+        </div>
+    </div>
+    
+
+</body>
+
+</html>
