@@ -64,12 +64,14 @@ NAV2D.Navigator = function(options) {
   var that = this;
   options = options || {};
   var ros = options.ros;
-  var tfClient = options.tfClient || null;
+  var use_tf = options.use_tf && true;
+  var map_frame = options.map_frame || '/map';
+  var base_frame = options.base_frame || '/base_link';
   var robot_pose = options.robot_pose || '/robot_pose';
   var topicName = options.topicName || '/whill/wagon_nav/request';
   var serverName = options.serverName || '/move_base';
   var actionName = options.actionName || 'move_base_msgs/MoveBaseAction';
-  var withOrientation = options.withOrientation || false;
+  var withOrientation = options.withOrientation && true;
   var use_image = options.image;
   this.rootObject = options.rootObject || new createjs.Container();
 
@@ -82,6 +84,14 @@ NAV2D.Navigator = function(options) {
     ros : ros,
     name : topicName,
     messageType : 'geometry_msgs/PoseStamped'
+  });
+
+  // setup tfClient
+  var tfClient = new ROSLIB.TFClient({
+    ros: ros,
+    fixedFrame: map_frame,
+    angularThres: 0.01,
+    transThres: 0.01
   });
 
   /**
@@ -174,8 +184,8 @@ NAV2D.Navigator = function(options) {
     robotMarker.visible = true;
   };
 
-  if(tfClient !== null) {
-    tfClient.subscribe(robot_pose, function(tf) {
+  if(use_tf == true) {
+    tfClient.subscribe(base_frame, function(tf) {
       updateRobotPosition(tf.translation,tf.rotation);
     });
   } else {
@@ -347,17 +357,21 @@ NAV2D.OccupancyGridClientNav = function(options) {
   var that = this;
   options = options || {};
   var ros = options.ros;
-  var tfClient = options.tfClient || null;
-  var map_topic = options.topic || '/map';
+  var use_tf = options.use_tf && true;
+  var map_frame = options.map_frame || '/map';
+  var base_frame = options.base_frame || '/base_link';
+  var map_topic = options.map_topic || '/map';
   var robot_pose = options.robot_pose || '/robot_pose';
   var continuous = options.continuous;
   var serverName = options.serverName || '/move_base';
   var actionName = options.actionName || 'move_base_msgs/MoveBaseAction';
   var rootObject = options.rootObject || new createjs.Container();
   var viewer = options.viewer;
-  var withOrientation = options.withOrientation || false;
+  var withOrientation = options.withOrientation && true;
   var image = options.image || false;
   var old_state = null;
+
+  console.log(use_tf);
 
   // setup a client to get the map
   var client = new ROS2D.OccupancyGridClient({
@@ -369,7 +383,9 @@ NAV2D.OccupancyGridClientNav = function(options) {
 
   var navigator = new NAV2D.Navigator({
     ros: ros,
-    tfClient: tfClient,
+    use_tf: use_tf,
+    map_frame: map_frame,
+    base_frame: base_frame,
     serverName: serverName,
     actionName: actionName,
     robot_pose : robot_pose,

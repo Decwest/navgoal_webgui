@@ -40,7 +40,11 @@
       ros : ros,
       rootObject : viewer.scene,
       viewer : viewer,
-      withOrientation : true,
+      use_tf: true,
+      map_frame: '/map',
+      base_frame: '/base_link',
+      map_topic: '/map',
+      // robot_pose: '/robot_pose',
       topicName : '/whill/wagon_nav/request'
     });
   }
