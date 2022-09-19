@@ -7,13 +7,7 @@
 <script type="text/javascript" src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
 <script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
 <script type="text/javascript" src="http://static.robotwebtools.org/ros2djs/current/ros2d.js"></script>
-<script type="text/javascript" src="http://static.robotwebtools.org/ros2djs/current/ros2d.min.js"></script>
-<script type="text/javascript" src="http://static.robotwebtools.org/nav2djs/current/nav2d.min.js"></script>
-
-<script src="http://static.robotwebtools.org/EaselJS/current/easeljs.min.js"></script>
-<script src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
-<script src="http://static.robotwebtools.org/roslibjs/current/roslib.js"></script>
-<script src="http://static.robotwebtools.org/ros2djs/current/ros2d.js"></script>
+<script type="text/javascript" src="./js/nav2d.js"></script>
 
 <script type="text/javascript">
   /**
@@ -47,7 +41,7 @@
       rootObject : viewer.scene,
       viewer : viewer,
       withOrientation : true,
-      serverName : '/whill/wagon_nav/request'
+      topicName : '/whill/wagon_nav/request'
     });
   }
 </script>
@@ -56,7 +50,7 @@
 <body onload="init()">
 <div class="title">
     <p>status: <label id="state">Disconnect</label></p>
-    <h1>2D Nav Goal Web Pubisher</h1>
+    <h1>2D Nav Goal Web Publisher</h1>
 </div>
   <div id="nav"></div>
 </body>

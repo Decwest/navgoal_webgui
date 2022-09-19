@@ -3,8 +3,6 @@
 
   <include file="$(find roswww)/launch/roswww.launch" >
     <arg name="name" value="$(arg name)"/>
-    <!-- <remap from="/map" to="/whill/costmap2d/costmap/costmap"/>
-    <remap from="/path" to="/whill/path"/> -->
   </include>
   <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
   <node pkg="tf2_web_republisher" type="tf2_web_republisher" name="tf2_web_republisher"/>
