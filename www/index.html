@@ -27,26 +27,71 @@
     });
     ros.connect('ws://' + location.hostname + ':9090');
 
-    // Create the main viewer.
-    // determine size
-    var viewer = new ROS2D.Viewer({
-      divID : 'nav',
-      width : 1200,
-      height : 800
+    //######################################################################################//
+    //######################                  config                  ######################//
+    //######################################################################################//
+    var use_tf = true;
+    var map_frame = '/map';
+    var base_frame = '/base_link';
+    var map_topic = '/map';
+    var robot_pose = '/robot_pose';
+    var topicName = '/whill/wagon_nav/request';
+    //######################################################################################//
+
+    // 2D map subscriber for check map size
+    var Maplistener = new ROSLIB.Topic({
+      ros: ros,
+      name: map_topic,
+      messageType: 'nav_msgs/OccupancyGrid'
     });
 
-    // Setup the nav client.
-    var nav = NAV2D.OccupancyGridClientNav({
-      ros : ros,
-      rootObject : viewer.scene,
-      viewer : viewer,
-      use_tf: true,
-      map_frame: '/map',
-      base_frame: '/base_link',
-      map_topic: '/map',
-      // robot_pose: '/robot_pose',
-      topicName : '/whill/wagon_nav/request'
+    Maplistener.subscribe(function (message) {
+      var map_metadata = message.info;
+      var map_width = map_metadata.width;
+      var map_height = map_metadata.height;
+      console.log(map_width, map_height);
+      Maplistener.unsubscribe();
+
+      // Create the main viewer.
+      // determine size
+      console.log(window.innerWidth, window.innerHeight);
+      if (window.innerWidth < window.innerHeight){
+        var Width = window.innerWidth
+        var Height = window.innerWidth * map_height / map_width
+        if (window.innerHeight < Height){
+          var Height = window.innerHeight
+          var Width = window.innerHeight * map_width / map_height
+        }
+      }
+      else{
+        var Height = window.innerHeight
+        var Width = window.innerHeight * map_width / map_height
+        if (window.innerWidth < Width){
+          var Width = window.innerWidth
+          var Height = window.innerWidth * map_height / map_width
+        }
+      }
+
+      var viewer = new ROS2D.Viewer({
+        divID : 'nav',
+        width : Width,
+        height : Height
+      });
+
+      // Setup the nav client.
+      var nav = NAV2D.OccupancyGridClientNav({
+        ros : ros,
+        rootObject : viewer.scene,
+        viewer : viewer,
+        use_tf: use_tf,
+        map_frame: map_frame,
+        base_frame: base_frame,
+        map_topic: map_topic,
+        robot_pose: robot_pose,
+        topicName : topicName
+      });
     });
+
   }
 </script>
 </head>

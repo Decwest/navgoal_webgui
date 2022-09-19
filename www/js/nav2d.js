@@ -371,8 +371,6 @@ NAV2D.OccupancyGridClientNav = function(options) {
   var image = options.image || false;
   var old_state = null;
 
-  console.log(use_tf);
-
   // setup a client to get the map
   var client = new ROS2D.OccupancyGridClient({
     ros : ros,
