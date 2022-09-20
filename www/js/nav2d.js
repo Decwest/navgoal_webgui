@@ -1,6 +1,7 @@
 /**
  * @author Russell Toris - rctoris@wpi.edu
  * @author Lars Kunze - l.kunze@cs.bham.ac.uk
+ * @modified by Fumiya Ohnishi - fumiya-onishi@keio.jp
  */
 
 var NAV2D = NAV2D || {
@@ -42,6 +43,7 @@ NAV2D.resizeMap = function(old_state, viewer, currentGrid) {
  * @author Russell Toris - rctoris@wpi.edu
  * @author Lars Kunze - l.kunze@cs.bham.ac.uk
  * @author Raffaello Bonghi - raffaello.bonghi@officinerobotiche.it
+ * @modified by Fumiya Ohnishi - fumiya-onishi@keio.jp
  */
 
 /**
@@ -55,8 +57,6 @@ NAV2D.resizeMap = function(old_state, viewer, currentGrid) {
  *   * ros - the ROSLIB.Ros connection handle
  *   * tfClient (optional) - the TF client
  *   * robot_pose (optional) - the robot topic or TF to listen position
- *   * serverName (optional) - the action server name to use for navigation, like '/move_base'
- *   * actionName (optional) - the navigation action name, like 'move_base_msgs/MoveBaseAction'
  *   * rootObject (optional) - the root object to add the click listeners to and render robot markers to
  *   * withOrientation (optional) - if the Navigator should consider the robot orientation (default: false)
  */
@@ -69,15 +69,10 @@ NAV2D.Navigator = function(options) {
   var base_frame = options.base_frame || '/base_link';
   var robot_pose = options.robot_pose || '/robot_pose';
   var topicName = options.topicName || '/whill/wagon_nav/request';
-  var serverName = options.serverName || '/move_base';
-  var actionName = options.actionName || 'move_base_msgs/MoveBaseAction';
   var withOrientation = options.withOrientation && true;
-  var use_image = options.image;
   this.rootObject = options.rootObject || new createjs.Container();
 
   this.goalMarker = null;
-  
-  var currentGoal;
 
   // setup the publisher
   var goalPub = new ROSLIB.Topic({
@@ -108,21 +103,12 @@ NAV2D.Navigator = function(options) {
 
     // create a marker for the goal
     if (that.goalMarker === null) {
-      if (use_image && ROS2D.hasOwnProperty('ImageNavigator')) {
-        that.goalMarker = new ROS2D.ImageNavigator({
-          size: 2.5,
-          image: use_image,
-          alpha: 0.7,
-          pulse: false
-        });
-      } else {
-        that.goalMarker = new ROS2D.NavigationArrow({
-          size: 15,
-          strokeSize: 1,
-          fillColor: createjs.Graphics.getRGB(255, 64, 128, 0.66),
-          pulse: false
-        });
-      }
+      that.goalMarker = new ROS2D.NavigationArrow({
+        size: 15,
+        strokeSize: 1,
+        fillColor: createjs.Graphics.getRGB(255, 64, 128, 0.66),
+        pulse: false
+      });
       that.rootObject.addChild(that.goalMarker);
     }
     that.goalMarker.x = pose.position.x;
@@ -130,10 +116,6 @@ NAV2D.Navigator = function(options) {
     that.goalMarker.rotation = stage.rosQuaternionToGlobalTheta(pose.orientation);
     that.goalMarker.scaleX = 1.0 / stage.scaleX;
     that.goalMarker.scaleY = 1.0 / stage.scaleY;
-
-    // goal.on('result', function() {
-    //   that.rootObject.removeChild(that.goalMarker);
-    // });
   }
 
   // get a handle to the stage
@@ -145,24 +127,21 @@ NAV2D.Navigator = function(options) {
   }
 
   //enable touchscreen if the device supported
-  createjs.Touch.enable(stage);
+  var enable_touch = false;
+  if (createjs.Touch.isSupported() === true){
+    createjs.Touch.enable(stage, false, true);
+    stage.preventSelection = false;
+    enable_touch = true
+  }
 
   // marker for the robot
   var robotMarker = null;
-  if (use_image && ROS2D.hasOwnProperty('ImageNavigator')) {
-    robotMarker = new ROS2D.ImageNavigator({
-      size: 2.5,
-      image: use_image,
-      pulse: false
-    });
-  } else {
-    robotMarker = new ROS2D.NavigationArrow({
-      size : 15,
-      strokeSize : 1,
-      fillColor : createjs.Graphics.getRGB(255, 128, 0, 0.66),
-      pulse : false
-    });
-  }
+  robotMarker = new ROS2D.NavigationArrow({
+    size : 15,
+    strokeSize : 1,
+    fillColor : createjs.Graphics.getRGB(255, 128, 0, 0.66),
+    pulse : false
+  });
 
   // wait for a pose to come in first
   robotMarker.visible = false;
@@ -184,7 +163,7 @@ NAV2D.Navigator = function(options) {
     robotMarker.visible = true;
   };
 
-  if(use_tf == true) {
+  if(use_tf === true) {
     tfClient.subscribe(base_frame, function(tf) {
       updateRobotPosition(tf.translation,tf.rotation);
     });
@@ -243,21 +222,12 @@ NAV2D.Navigator = function(options) {
           var currentPos = stage.globalToRos(event.stageX, event.stageY);
           var currentPosVec3 = new ROSLIB.Vector3(currentPos);
 
-          if (use_image && ROS2D.hasOwnProperty('ImageNavigator')) {
-            orientationMarker = new ROS2D.ImageNavigator({
-              size: 2.5,
-              image: use_image,
-              alpha: 0.7,
-              pulse: false
-            });
-          } else {
-            orientationMarker = new ROS2D.NavigationArrow({
-              size : 25,
-              strokeSize : 1,
-              fillColor : createjs.Graphics.getRGB(0, 255, 0, 0.66),
-              pulse : false
-            });
-          }
+          orientationMarker = new ROS2D.NavigationArrow({
+            size : 25,
+            strokeSize : 1,
+            fillColor : createjs.Graphics.getRGB(0, 255, 0, 0.66),
+            pulse : false
+          });
 
           xDelta =  currentPosVec3.x - positionVec3.x;
           yDelta =  currentPosVec3.y - positionVec3.y;
@@ -280,7 +250,8 @@ NAV2D.Navigator = function(options) {
 
           that.rootObject.addChild(orientationMarker);
         }
-      } else if (mouseDown) { // mouseState === 'up'
+      }
+      else if (mouseState === 'up' && mouseDown) { // mouseState === 'up'
         // if mouse button is released
         // - get current mouse position (goalPos)
         // - calulate direction between stored <position> and goal position
@@ -317,22 +288,65 @@ NAV2D.Navigator = function(options) {
       }
     };
 
+    var multitouch = false;
+
     this.rootObject.addEventListener('stagemousedown', function(event) {
+      if (enable_touch){
+        console.log(event.nativeEvent.targetTouches.length)
+        var touch_num = event.nativeEvent.targetTouches.length;
+        if (touch_num >= 2){
+          //cancel goal and disable touch
+          that.rootObject.removeChild(orientationMarker);
+          multitouch = true;
+          mouseDown = false;
+          return;
+        }
+        event.nativeEvent.preventDefault();
+      }
       mouseEventHandler(event,'down');
     });
 
     this.rootObject.addEventListener('stagemousemove', function(event) {
+      if (enable_touch){
+        console.log(event.nativeEvent.targetTouches.length)
+        var touch_num = event.nativeEvent.targetTouches.length;
+        if (touch_num >= 1 && multitouch){
+          //cancel goal and disable touch
+          that.rootObject.removeChild(orientationMarker);
+          multitouch = true;
+          mouseDown = false;
+          return;
+        }
+      }
       mouseEventHandler(event,'move');
     });
 
     this.rootObject.addEventListener('stagemouseup', function(event) {
+      if (enable_touch){
+        console.log(event.nativeEvent.targetTouches.length)
+        var touch_num = event.nativeEvent.targetTouches.length;
+        if (touch_num >= 1 && multitouch){
+          //cancel goal and disable touch
+          that.rootObject.removeChild(orientationMarker);
+          multitouch = true;
+          mouseDown = false;
+          return;
+        }
+        else if (touch_num === 0 && multitouch){
+          multitouch = false;
+          return;
+        }
+        event.nativeEvent.preventDefault();
+      }
       mouseEventHandler(event,'up');
     });
+    
   }
 };
 
 /**
  * @author Russell Toris - rctoris@wpi.edu
+ * @modified by Fumiya Ohnishi - fumiya-onishi@keio.jp
  */
 
 /**
@@ -346,11 +360,8 @@ NAV2D.Navigator = function(options) {
  *   * robot_pose (optional) - the robot topic or TF to listen position
  *   * rootObject (optional) - the root object to add this marker to
  *   * continuous (optional) - if the map should be continuously loaded (e.g., for SLAM)
- *   * serverName (optional) - the action server name to use for navigation, like '/move_base'
- *   * actionName (optional) - the navigation action name, like 'move_base_msgs/MoveBaseAction'
  *   * rootObject (optional) - the root object to add the click listeners to and render robot markers to
  *   * withOrientation (optional) - if the Navigator should consider the robot orientation (default: false)
- *   * image (optional) - the route of the image if we want to use the NavigationImage instead the NavigationArrow
  *   * viewer - the main viewer to render to
  */
 NAV2D.OccupancyGridClientNav = function(options) {
@@ -363,12 +374,9 @@ NAV2D.OccupancyGridClientNav = function(options) {
   var map_topic = options.map_topic || '/map';
   var robot_pose = options.robot_pose || '/robot_pose';
   var continuous = options.continuous;
-  var serverName = options.serverName || '/move_base';
-  var actionName = options.actionName || 'move_base_msgs/MoveBaseAction';
   var rootObject = options.rootObject || new createjs.Container();
   var viewer = options.viewer;
   var withOrientation = options.withOrientation && true;
-  var image = options.image || false;
   var old_state = null;
 
   // setup a client to get the map
@@ -384,12 +392,9 @@ NAV2D.OccupancyGridClientNav = function(options) {
     use_tf: use_tf,
     map_frame: map_frame,
     base_frame: base_frame,
-    serverName: serverName,
-    actionName: actionName,
     robot_pose : robot_pose,
     rootObject: rootObject,
     withOrientation: withOrientation,
-    image: image
   });
 
   client.on('change', function() {
