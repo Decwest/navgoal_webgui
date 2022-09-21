@@ -1,5 +1,9 @@
 # navgoal_webgui
 
+<img src='(https://user-images.githubusercontent.com/47899069/191579461-4bee0fa7-0bef-4636-a39b-b1ea4d462049.png' width="500" >
+
+<div><video controls src="https://user-images.githubusercontent.com/47899069/191580812-bcdbfc4e-1572-4129-aeb7-3de3789e4ba0.mp4" muted="false" width="500"></video></div>
+
 A WebGUI for publishing 2D Nav Goal (`geometry_msgs::PoseStamped`)
 
 This code is based on [nav2djs](https://github.com/GT-RAIL/nav2djs)
