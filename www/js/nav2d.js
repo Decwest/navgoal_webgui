@@ -378,6 +378,7 @@ NAV2D.OccupancyGridClientNav = function(options) {
   var base_frame = options.base_frame || '/base_link';
   var map_topic = options.map_topic || '/map';
   var robot_pose = options.robot_pose || '/robot_pose';
+  var topicName = options.topicName || '/move_base_simple/goal';
   var continuous = options.continuous;
   var rootObject = options.rootObject || new createjs.Container();
   var viewer = options.viewer;
@@ -398,6 +399,7 @@ NAV2D.OccupancyGridClientNav = function(options) {
     map_frame: map_frame,
     base_frame: base_frame,
     robot_pose : robot_pose,
+    topicName : topicName,
     rootObject: rootObject,
     withOrientation: withOrientation,
   });
