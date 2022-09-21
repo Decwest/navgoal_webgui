@@ -55,10 +55,13 @@ NAV2D.resizeMap = function(old_state, viewer, currentGrid) {
  * @constructor
  * @param options - object with following keys:
  *   * ros - the ROSLIB.Ros connection handle
- *   * tfClient (optional) - the TF client
- *   * robot_pose (optional) - the robot topic or TF to listen position
+ *   * use_tf (optional) - whther use tf or not
+ *   * map_frame (optional) - map tf name
+ *   * base_frame (optional) - robot tf name
+ *   * robot_pose (optional) - the robot pose topic name
+ *   * topicName (optional) - topic name of publishing PoseStamped msg
  *   * rootObject (optional) - the root object to add the click listeners to and render robot markers to
- *   * withOrientation (optional) - if the Navigator should consider the robot orientation (default: false)
+ *   * withOrientation (optional) - if the Navigator should consider the robot orientation (default: true)
  */
 NAV2D.Navigator = function(options) {
   var that = this;
@@ -68,7 +71,7 @@ NAV2D.Navigator = function(options) {
   var map_frame = options.map_frame || '/map';
   var base_frame = options.base_frame || '/base_link';
   var robot_pose = options.robot_pose || '/robot_pose';
-  var topicName = options.topicName || '/whill/wagon_nav/request';
+  var topicName = options.topicName || '/move_base_simple/goal';
   var withOrientation = options.withOrientation && true;
   this.rootObject = options.rootObject || new createjs.Container();
 
@@ -355,13 +358,15 @@ NAV2D.Navigator = function(options) {
  * @constructor
  * @param options - object with following keys:
  *   * ros - the ROSLIB.Ros connection handle
- *   * tfClient (optional) - Read information from TF
- *   * topic (optional) - the map topic to listen to
- *   * robot_pose (optional) - the robot topic or TF to listen position
+ *   * use_tf (optional) - whther use tf or not
+ *   * map_frame (optional) - map tf name
+ *   * base_frame (optional) - robot tf name
+ *   * robot_pose (optional) - the robot pose topic name
+ *   * topicName (optional) - topic name of publishing PoseStamped msg
  *   * rootObject (optional) - the root object to add this marker to
  *   * continuous (optional) - if the map should be continuously loaded (e.g., for SLAM)
  *   * rootObject (optional) - the root object to add the click listeners to and render robot markers to
- *   * withOrientation (optional) - if the Navigator should consider the robot orientation (default: false)
+ *   * withOrientation (optional) - if the Navigator should consider the robot orientation (default: true)
  *   * viewer - the main viewer to render to
  */
 NAV2D.OccupancyGridClientNav = function(options) {
