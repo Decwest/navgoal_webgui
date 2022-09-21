@@ -1,6 +1,7 @@
 # navgoal_webgui
 
-A WebGUI for publishing 2D Nav Goal (geometry_msgs::PoseStamped)
+A WebGUI for publishing 2D Nav Goal (`geometry_msgs::PoseStamped`)
+
 This code is based on [nav2djs](https://github.com/GT-RAIL/nav2djs)
 
 ## Install
@@ -32,7 +33,7 @@ roslaunch navgoal_webgui webserver.launch
     ```
 
 ## Parameter
-You can change the topic and tf names by modifiying parameters in the line 30 of index.html.
+You can change the topic and tf names by modifiying parameters [in the line 30 of index.html](https://github.com/Decwest/navgoal_webgui/blob/master/www/index.html#L30-L39).
 
 ```html
     //######################################################################################//
